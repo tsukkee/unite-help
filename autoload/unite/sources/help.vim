@@ -28,7 +28,14 @@ function! unite#sources#help#define()
 endfunction
 
 
-" help
+" cache
+let s:cache = []
+function! unite#sources#help#_refresh_cache()
+    let s:cache = []
+endfunction
+
+
+" source
 let s:source = {
 \   'name': 'help',
 \   'max_candidates': 30,
@@ -36,9 +43,13 @@ let s:source = {
 \   'default_action': {'word': 'lookup'}
 \}
 function! s:source.gather_candidates(args, context)
+    if empty(s:cache)
+        let s:cache = split(globpath(&runtimepath, 'doc/{tags,tags-*}'), "\n")
+    endif
+
     " parsing tag files is faster than using taglist()
     let result = []
-    for tagfile in split(globpath(&runtimepath, 'doc/{tags,tags-*}'), "\n")
+    for tagfile in s:cache
         for line in readfile(tagfile)
             let name = split(line, "\t")[0]
 
@@ -59,7 +70,9 @@ function! s:source.gather_candidates(args, context)
 endfunction
 
 
+" action
 let s:action_table = {}
+
 let s:action_table.lookup = {
 \   'is_selectable': 1
 \}
