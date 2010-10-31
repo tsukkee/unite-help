@@ -60,7 +60,8 @@ function! s:source.gather_candidates(args, context)
                 \   'abbr':     '[help] ' . name,
                 \   'kind':     'word',
                 \   'source':   'help',
-                \   'is_insert': a:context.is_insert
+                \   'action__word': name,
+                \   'action__is_insert': a:context.is_insert
                 \})
             endif
         endfor
@@ -74,7 +75,7 @@ endfunction
 let s:action_table = {}
 
 let s:action_table.lookup = {
-\   'is_selectable': 1
+\   'is_selectable': 0
 \}
 function! s:action_table.lookup.func(candidate)
     execute "help" a:candidate.word
