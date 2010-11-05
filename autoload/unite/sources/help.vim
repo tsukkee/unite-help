@@ -75,7 +75,7 @@ endfunction
 let s:action_table = {}
 
 let s:action_table.lookup = {
-\   'is_selectable': 0
+\   'description': 'lookup help'
 \}
 function! s:action_table.lookup.func(candidate)
     execute "help" a:candidate.word
