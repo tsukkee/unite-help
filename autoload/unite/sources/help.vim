@@ -1,6 +1,6 @@
 " help source for unite.vim
-" Version:     0.0.1
-" Last Change: 21 Oct 2010
+" Version:     0.0.2
+" Last Change: 8 Nov 2010
 " Author:      tsukkee <takayuki0510 at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
