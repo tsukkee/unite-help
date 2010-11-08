@@ -81,5 +81,12 @@ function! s:action_table.lookup.func(candidate)
     execute "help" a:candidate.word
 endfunction
 
+let s:action_table.tabopen = {
+\   'description': 'open help in a new tab'
+\}
+function! s:action_table.tabopen.func(candidate)
+    execute "tab help" a:candidate.word
+endfunction
+
 let s:source.action_table.word = s:action_table
 
