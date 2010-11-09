@@ -50,6 +50,8 @@ function! s:source.gather_candidates(args, context)
     " parsing tag files is faster than using taglist()
     let result = []
     for tagfile in s:cache
+        if !filereadable(tagfile) | continue | endif
+
         for line in readfile(tagfile)
             let name = split(line, "\t")[0]
 
@@ -57,7 +59,7 @@ function! s:source.gather_candidates(args, context)
             if stridx(name, "!") != 0
                 call add(result, {
                 \   'word':     name,
-                \   'abbr':     '[help] ' . name,
+                \   'abbr':     name,
                 \   'kind':     'word',
                 \   'source':   'help',
                 \   'action__word': name,
