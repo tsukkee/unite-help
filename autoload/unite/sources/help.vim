@@ -66,7 +66,7 @@ function! s:source.gather_candidates(args, context)
         endfor
     endif
 
-    let is_insert = {'action__is_insert', a:context.is_insert}
+    let is_insert = {'action__is_insert': a:context.is_insert}
     call map(s:cache, 'extend(v:val, is_insert)')
 
     return s:cache
