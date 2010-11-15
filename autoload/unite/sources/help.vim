@@ -1,6 +1,6 @@
 " help source for unite.vim
-" Version:     0.0.2
-" Last Change: 8 Nov 2010
+" Version:     0.0.3
+" Last Change: 15 Nov 2010
 " Author:      tsukkee <takayuki0510 at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -30,7 +30,7 @@ endfunction
 
 " cache
 let s:cache = []
-function! unite#sources#help#_refresh_cache()
+function! unite#sources#help#refresh()
     let s:cache = []
 endfunction
 
@@ -44,32 +44,33 @@ let s:source = {
 \}
 function! s:source.gather_candidates(args, context)
     if empty(s:cache)
-        let s:cache = split(globpath(&runtimepath, 'doc/{tags,tags-*}'), "\n")
+        let tagfiles = split(globpath(&runtimepath, 'doc/{tags,tags-*}'), "\n")
+        for tagfile in tagfiles
+            if !filereadable(tagfile) | continue | endif
+
+            for line in readfile(tagfile)
+                let name = split(line, "\t")[0]
+
+                " if not comment line
+                if stridx(name, "!") != 0
+                    call add(s:cache, {
+                    \   'word':     name,
+                    \   'abbr':     name,
+                    \   'kind':     'word',
+                    \   'source':   'help',
+                    \   'action__word':      name,
+                    \   'action__is_insert': 0
+                    \})
+                endif
+            endfor
+        endfor
     endif
 
-    " parsing tag files is faster than using taglist()
-    let result = []
-    for tagfile in s:cache
-        if !filereadable(tagfile) | continue | endif
-
-        for line in readfile(tagfile)
-            let name = split(line, "\t")[0]
-
-            " if not comment line
-            if stridx(name, "!") != 0
-                call add(result, {
-                \   'word':     name,
-                \   'abbr':     name,
-                \   'kind':     'word',
-                \   'source':   'help',
-                \   'action__word': name,
-                \   'action__is_insert': a:context.is_insert
-                \})
-            endif
-        endfor
+    for i in range(0, len(s:cache))
+        let s:cache[i].action__is_insert = a:context.is_insert
     endfor
 
-    return result
+    return s:cache
 endfunction
 
 
