@@ -38,6 +38,7 @@ endfunction
 let s:source = {
 \   'name': 'help',
 \   'max_candidates': 50,
+\   'required_pattern_length': 1,
 \   'action_table': {},
 \   'default_action': {'common': 'execute'}
 \}
