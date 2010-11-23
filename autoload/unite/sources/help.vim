@@ -64,11 +64,13 @@ function! s:source.gather_candidates(args, context)
             if !filereadable(tagfile) | continue | endif
 
             let lang = matchstr(tagfile, 'tags-\zs[a-z]\{2\}')
+            let place = fnamemodify(expand(tagfile), ':p:h:h:t')
 
             for line in readfile(tagfile)
                 let name = split(line, "\t")[0]
                 let word = name . '@' . (!empty(lang) ? lang : 'en')
-                let abbr = name . (!empty(lang) ? '@' . lang : '')
+                let abbr = printf(
+                      \ "%s%s (in %s)", name, !empty(lang) ? '@' . lang : '', place)
 
                 " if not comment line
                 if stridx(name, "!") != 0
