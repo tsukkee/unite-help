@@ -1,6 +1,6 @@
 " help source for unite.vim
 " Version:     0.0.3
-" Last Change: 15 Nov 2010
+" Last Change: 03 Jun 2012
 " Author:      tsukkee <takayuki0510 at gmail.com>
 " Licence:     The MIT License {{{
 "     Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -34,11 +34,17 @@ function! unite#sources#help#refresh()
     let s:cache = []
 endfunction
 
+" cache directory
+let s:cache_dir = g:unite_data_directory . 'help'
+if !isdirectory(s:cache_dir)
+    call mkdir(s:cache_dir, 'p')
+endif
+
 " source
 let s:source = {
 \   'name': 'help',
 \   'max_candidates': 50,
-\   'required_pattern_length': 1,
+\   'required_pattern_length': 0,
 \   'action_table': {},
 \   'default_action': {'common': 'execute'}
 \}
@@ -63,6 +69,14 @@ function! s:source.gather_candidates(args, context)
         for tagfile in split(globpath(&runtimepath, 'doc/{tags,tags-*}'), "\n")
             if !filereadable(tagfile) | continue | endif
 
+            let cache_data = s:read_cache(tagfile)
+
+            if !empty(cache_data)
+                let s:cache += cache_data
+                continue
+            endif
+
+            let data = []
             let lang = matchstr(tagfile, 'tags-\zs[a-z]\{2\}')
             let place = fnamemodify(expand(tagfile), ':p:h:h:t')
 
@@ -74,7 +88,7 @@ function! s:source.gather_candidates(args, context)
 
                 " if not comment line
                 if stridx(name, "!") != 0
-                    call add(s:cache, {
+                    call add(data, {
                     \   'word':   word,
                     \   'abbr':   abbr,
                     \   'kind':   'common',
@@ -84,6 +98,9 @@ function! s:source.gather_candidates(args, context)
                     \})
                 endif
             endfor
+
+            let s:cache += data
+            call s:write_cache(tagfile, data)
         endfor
     endif
 
@@ -91,6 +108,29 @@ function! s:source.gather_candidates(args, context)
     \   'empty(lang_filter) || index(lang_filter, v:val.source__lang) != -1')
 endfunction
 
+" cache to file
+function s:filename_to_cachename(filename)
+    return s:cache_dir . '/' . substitute(a:filename, '[\/]', '+=', 'g')
+endfunction
+
+function s:write_cache(filename, data)
+    call writefile([getftime(a:filename), string(a:data)],
+    \   s:filename_to_cachename(a:filename))
+endfunction
+
+function s:read_cache(filename)
+    let cache_filename = s:filename_to_cachename(a:filename)
+
+    if filereadable(cache_filename)
+        let data = readfile(cache_filename)
+        let ftime = getftime(a:filename)
+
+        if ftime == data[0]
+            sandbox return eval(data[1])
+        endif
+    endif
+    return {}
+endfunction
 
 " action
 let s:action_table = {}
