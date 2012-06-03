@@ -31,14 +31,12 @@ endfunction
 " cache
 let s:cache = []
 function! unite#sources#help#refresh()
+    call delete(s:cache_file)
     let s:cache = []
 endfunction
 
 " cache directory
-let s:cache_dir = g:unite_data_directory . 'help'
-if !isdirectory(s:cache_dir)
-    call mkdir(s:cache_dir, 'p')
-endif
+let s:cache_file = g:unite_data_directory . 'help'
 
 " source
 let s:source = {
@@ -65,18 +63,12 @@ function! s:source.gather_candidates(args, context)
         call unite#sources#help#refresh()
     endif
 
+    let s:cache = s:read_cache()
+
     if empty(s:cache)
         for tagfile in split(globpath(&runtimepath, 'doc/{tags,tags-*}'), "\n")
             if !filereadable(tagfile) | continue | endif
 
-            let cache_data = s:read_cache(tagfile)
-
-            if !empty(cache_data)
-                let s:cache += cache_data
-                continue
-            endif
-
-            let data = []
             let lang = matchstr(tagfile, 'tags-\zs[a-z]\{2\}')
             let place = fnamemodify(expand(tagfile), ':p:h:h:t')
 
@@ -88,7 +80,7 @@ function! s:source.gather_candidates(args, context)
 
                 " if not comment line
                 if stridx(name, "!") != 0
-                    call add(data, {
+                    call add(s:cache, {
                     \   'word':   word,
                     \   'abbr':   abbr,
                     \   'kind':   'common',
@@ -98,10 +90,11 @@ function! s:source.gather_candidates(args, context)
                     \})
                 endif
             endfor
-
-            let s:cache += data
-            call s:write_cache(tagfile, data)
         endfor
+        call s:write_cache(s:cache)
+    else
+        call unite#print_message('[help] using cache file created at '
+        \   . strftime("%c", getftime(s:cache_file)))
     endif
 
     return filter(copy(s:cache),
@@ -109,27 +102,16 @@ function! s:source.gather_candidates(args, context)
 endfunction
 
 " cache to file
-function s:filename_to_cachename(filename)
-    return s:cache_dir . '/' . substitute(a:filename, '[\/]', '+=', 'g')
+function s:write_cache(data)
+    call writefile([string(a:data)], s:cache_file)
 endfunction
 
-function s:write_cache(filename, data)
-    call writefile([getftime(a:filename), string(a:data)],
-    \   s:filename_to_cachename(a:filename))
-endfunction
-
-function s:read_cache(filename)
-    let cache_filename = s:filename_to_cachename(a:filename)
-
-    if filereadable(cache_filename)
-        let data = readfile(cache_filename)
-        let ftime = getftime(a:filename)
-
-        if ftime == data[0]
-            sandbox return eval(data[1])
-        endif
+function s:read_cache()
+    if filereadable(s:cache_file)
+        let data = readfile(s:cache_file)
+        sandbox return eval(data[0])
     endif
-    return {}
+    return []
 endfunction
 
 " action

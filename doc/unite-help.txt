@@ -46,7 +46,11 @@ Also, you can filster language using parameter
 >
 	:Unite help:ja
 <
-
+This plugin caches help files at first time and this can take long time.
+And, if you want refresh caches, execute like below.
+>
+	:Unite help:!
+<
 
 ==============================================================================
 vim:tw=78:fo=tcq2mM:ts=8:ft=help:norl
